@@ -1,10 +1,10 @@
-# Chatbot with LangGraph, LangChain, and Gemini AI
+# Chatbot with LangGraph, LangChain, and Together AI
 
-This is a chatbot application that uses LangGraph, LangChain, and Gemini AI for natural language processing, with Neon DB for persistent storage.
+This is a chatbot application that uses LangGraph, LangChain, and Together AI for natural language processing, with Neon DB for persistent storage.
 
 ## Features
 
-- Integration with Google's Gemini AI for natural language processing
+- Integration with Together AI for natural language processing
 - Persistent chat history storage using Neon DB
 - RESTful API using FastAPI
 - User-specific chat history retrieval
@@ -12,7 +12,7 @@ This is a chatbot application that uses LangGraph, LangChain, and Gemini AI for 
 ## Prerequisites
 
 - Python 3.8 or higher
-- A Gemini AI API key
+- A Together AI API key
 - A Neon DB connection string
 
 ## Setup
@@ -35,7 +35,7 @@ This is a chatbot application that uses LangGraph, LangChain, and Gemini AI for 
    ```
 
 5. Edit the `.env` file with your actual credentials:
-   - GEMINI_API_KEY: Your Google Gemini AI API key
+   - TOGETHER_API_KEY: Your Together AI API key
    - NEON_DATABASE_URL: Your Neon DB connection string
 
 ## Running the Application
