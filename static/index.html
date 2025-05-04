@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        #chat-container {
+            height: 500px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #message-input {
+            width: calc(100% - 100px);
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #e9ecef;
+            margin-left: 20%;
+            border-bottom-right-radius: 0;
+        }
+        .bot-message {
+            background-color: #007bff;
+            color: white;
+            margin-right: 20%;
+            border-bottom-left-radius: 0;
+        }
+        .error-message {
+            background-color: #dc3545;
+            color: white;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            margin-right: 20%;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            width: fit-content;
+        }
+        .typing-indicator span {
+            margin-left: 8px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chatbot Interface</h1>
+    <div id="chat-container"></div>
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="message-input" placeholder="Type your message here...">
+        <button id="send-button" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        let isWaitingForResponse = false;
+        
+        async function sendMessage() {
+            if (isWaitingForResponse) return;
+            
+            const input = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = '<div class="loading"></div><span>Bot is typing...</span>';
+            document.getElementById('chat-container').appendChild(typingIndicator);
+            
+            // Disable input and button
+            input.disabled = true;
+            sendButton.disabled = true;
+            isWaitingForResponse = true;
+
+            try {
+                console.log('Sending message to server...');
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        message: message
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to get response from server');
+                }
+
+                const data = await response.json();
+                console.log('Received response:', data);
+                
+                // Remove typing indicator
+                typingIndicator.remove();
+                addMessage(data.response, 'bot');
+            } catch (error) {
+                console.error('Error:', error);
+                // Remove typing indicator
+                typingIndicator.remove();
+                addMessage('Error: ' + error.message, 'error');
+            } finally {
+                // Re-enable input and button
+                input.disabled = false;
+                sendButton.disabled = false;
+                isWaitingForResponse = false;
+                input.focus();
+            }
+        }
+
+        function addMessage(text, type) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Allow sending message with Enter key
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !isWaitingForResponse) {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
